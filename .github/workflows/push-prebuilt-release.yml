@@ -1,0 +1,32 @@
+name: Push Prebuilt Release
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'The repository for which to push the release.'
+        required: true
+      release-tag-prefix:
+        description: 'The prefix to use for the release tag. Use the Engine version, or leave empty if latest version. If a version is supplied, a slash has to be appended, e.g.: v1.2.2/'
+
+concurrency:
+  group: release-prebuilt-binaries-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Release prebuilt binaries
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-latest
+            name: "Ubuntu Latest"
+    steps:
+      - uses: Silverlan/common_actions/publish_prebuilt_module@main
+        with: 
+          repository: "Silverlan/${{ inputs.repository }}"
+          release_tag: "${{ inputs.release-tag-prefix }}${{ inputs.repository }}"
+          access_token: "${{ secrets.REPO_RELEASE_ACCESS_TOKEN }}"
+          release_token: "${{ secrets.GITHUB_TOKEN }}"
+
