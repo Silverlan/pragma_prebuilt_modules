@@ -1,0 +1,42 @@
+name: Release prebuilt binaries for pr_mount_external module from URL
+on:
+  workflow_dispatch:
+    inputs:
+      release-tag-prefix:
+        description: 'The prefix to use for the release tag. Use the Engine version, or leave empty if latest version. If a version is supplied, a slash has to be appended, e.g.: v1.2.2/'
+
+jobs:
+  build:
+    name: Release prebuilt binaries
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-latest
+            name: "Ubuntu Latest"
+    steps:
+      - name: Get Binaries
+        shell: bash
+        run: |
+          wget https://pragma-engine.com/share/github/binaries_windows64.zip
+          wget https://pragma-engine.com/share/github/binaries_linux64.tar.gz
+
+      - name: Update Nightly Tag
+        uses: rickstaa/action-create-tag@v1.3.9
+        continue-on-error: true
+        with:
+          tag: "${{ inputs.release-tag-prefix }}pr_mount_external"
+          force_push_tag: true
+
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "binaries_linux64.tar.gz,binaries_windows64.zip"
+          body: "Automatically generated binaries."
+          commit: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: "${{ inputs.release-tag-prefix }}pr_mount_external"
+          replacesArtifacts: true
+          allowUpdates: true
+          
