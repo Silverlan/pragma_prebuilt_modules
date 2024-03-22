@@ -1,7 +1,10 @@
-name: Release prebuilt binaries for pr_mount_external module from URL
+name: Release prebuilt binaries from URL
 on:
   workflow_dispatch:
     inputs:
+      repository:
+        description: 'The repository for which to push the release.'
+        required: true
       release-tag-prefix:
         description: 'The prefix to use for the release tag. Use the Engine version, or leave empty if latest version. If a version is supplied, a slash has to be appended, e.g.: v1.2.2/'
 
@@ -19,14 +22,14 @@ jobs:
       - name: Get Binaries
         shell: bash
         run: |
-          wget https://pragma-engine.com/share/github/binaries_windows64.zip
-          wget https://pragma-engine.com/share/github/binaries_linux64.tar.gz
+          wget https://pragma-engine.com/share/github/${{ inputs.repository }}/binaries_windows64.zip
+          wget https://pragma-engine.com/share/github/${{ inputs.repository }}/binaries_linux64.tar.gz
 
       - name: Update Nightly Tag
         uses: rickstaa/action-create-tag@v1.3.9
         continue-on-error: true
         with:
-          tag: "${{ inputs.release-tag-prefix }}pr_mount_external"
+          tag: "${{ inputs.release-tag-prefix }}${{ inputs.repository }}"
           force_push_tag: true
 
       - name: Release
@@ -36,7 +39,7 @@ jobs:
           body: "Automatically generated binaries."
           commit: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: "${{ inputs.release-tag-prefix }}pr_mount_external"
+          tag: "${{ inputs.release-tag-prefix }}${{ inputs.repository }}"
           replacesArtifacts: true
           allowUpdates: true
           
